@@ -7,6 +7,17 @@
 -- Enable PostGIS extension for spatial queries
 CREATE EXTENSION IF NOT EXISTS postgis;
 
+-- Clean wipe existing tables if re-running
+DROP TABLE IF EXISTS sensor_telemetry CASCADE;
+DROP TABLE IF EXISTS user_preferences CASCADE;
+DROP TABLE IF EXISTS barometer_readings CASCADE;
+DROP TABLE IF EXISTS cap_alerts CASCADE;
+DROP TABLE IF EXISTS hazard_alerts CASCADE;
+DROP TABLE IF EXISTS storm_trajectories CASCADE;
+DROP TABLE IF EXISTS storm_cells CASCADE;
+DROP TABLE IF EXISTS radar_grid_data CASCADE;
+DROP TABLE IF EXISTS monitoring_regions CASCADE;
+
 -- =========================================
 -- 1. MONITORING REGIONS (DWR Station Areas)
 -- =========================================
@@ -26,8 +37,16 @@ CREATE TABLE monitoring_regions (
 INSERT INTO monitoring_regions (id, name, lat, lng, zoom, dwr_station, geom) VALUES
   ('delhi-ncr', 'Delhi NCR & Western UP', 28.6139, 77.2090, 9, 'DWR Palam (500 kW S-Band)', ST_SetSRID(ST_MakePoint(77.2090, 28.6139), 4326)),
   ('dehradun', 'Dehradun & Garhwal Hills (Cloudburst Focus)', 30.3165, 78.0322, 10, 'DWR Surkanda Devi (X-Band)', ST_SetSRID(ST_MakePoint(78.0322, 30.3165), 4326)),
+  ('srinagar', 'Srinagar & Kashmir Valley (Western Disturbance)', 34.0837, 74.7973, 9, 'DWR Srinagar (X-Band)', ST_SetSRID(ST_MakePoint(74.7973, 34.0837), 4326)),
   ('kolkata', 'Gangetic West Bengal (Norwester Zone)', 22.5726, 88.3639, 9, 'DWR Kolkata (C-Band)', ST_SetSRID(ST_MakePoint(88.3639, 22.5726), 4326)),
-  ('nagpur', 'Central India (Vidarbha Hail Corridor)', 21.1458, 79.0882, 9, 'DWR Nagpur (S-Band)', ST_SetSRID(ST_MakePoint(79.0882, 21.1458), 4326));
+  ('guwahati', 'Guwahati & Assam Valley (Flash Flood Zone)', 26.1445, 91.7362, 9, 'DWR Guwahati (S-Band)', ST_SetSRID(ST_MakePoint(91.7362, 26.1445), 4326)),
+  ('nagpur', 'Central India (Vidarbha Hail Corridor)', 21.1458, 79.0882, 9, 'DWR Nagpur (S-Band)', ST_SetSRID(ST_MakePoint(79.0882, 21.1458), 4326)),
+  ('mumbai', 'Mumbai & Konkan Coast (Urban Cloudburst Risk)', 19.0760, 72.8777, 10, 'DWR Veravali Mumbai (S-Band)', ST_SetSRID(ST_MakePoint(72.8777, 19.0760), 4326)),
+  ('chennai', 'Chennai & Coromandel Coast', 13.0827, 80.2707, 9, 'DWR Chennai Port (S-Band)', ST_SetSRID(ST_MakePoint(80.2707, 13.0827), 4326)),
+  ('bengaluru', 'Bengaluru & South Karnataka Plateau', 12.9716, 77.5946, 9, 'DWR Bengaluru (S-Band)', ST_SetSRID(ST_MakePoint(77.5946, 12.9716), 4326)),
+  ('hyderabad', 'Hyderabad & Telangana Convective Zone', 17.3850, 78.4867, 9, 'DWR Begumpet (S-Band)', ST_SetSRID(ST_MakePoint(78.4867, 17.3850), 4326)),
+  ('ahmedabad', 'Ahmedabad & Gujarat Coastal Belt', 23.0225, 72.5714, 9, 'DWR Bhuj / AHD (S-Band)', ST_SetSRID(ST_MakePoint(72.5714, 23.0225), 4326)),
+  ('kochi', 'Kochi & Malabar Coast (Monsoon Onset)', 9.9312, 76.2673, 10, 'DWR Kochi (C-Band)', ST_SetSRID(ST_MakePoint(76.2673, 9.9312), 4326));
 
 -- =========================================
 -- 2. RADAR GRID DATA (1–3 km Resolution)
@@ -36,117 +55,93 @@ CREATE TABLE radar_grid_data (
   id BIGSERIAL PRIMARY KEY,
   region_id TEXT REFERENCES monitoring_regions(id) ON DELETE CASCADE,
   observation_time TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  lead_time_hours REAL NOT NULL DEFAULT 0,  -- 0 = live, 0.25 to 6.0 = forecast
+  lead_time_hours REAL NOT NULL DEFAULT 0,
   lat DOUBLE PRECISION NOT NULL,
   lng DOUBLE PRECISION NOT NULL,
   geom GEOMETRY(Point, 4326),
-  -- Doppler Weather Radar (DWR)
-  reflectivity_dbz REAL,           -- dBZ (0–72)
-  radial_velocity_ms REAL,         -- m/s (-30 to +30)
-  -- INSAT-3D Satellite
-  ir_brightness_temp_c REAL,       -- Cloud-top IR temp (°C)
-  -- Multi-Hazard Derived Metrics
-  hail_probability_pct REAL,       -- MESH index (0–100%)
-  rain_rate_mm_hr REAL,            -- Instantaneous rain rate
-  lightning_density REAL,           -- flashes/km²/hr
+  reflectivity_dbz REAL,
+  radial_velocity_ms REAL,
+  ir_brightness_temp_c REAL,
+  hail_probability_pct REAL,
+  rain_rate_mm_hr REAL,
+  lightning_density REAL,
   cloudburst_risk TEXT CHECK (cloudburst_risk IN ('LOW', 'MODERATE', 'HIGH', 'EXTREME')),
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- Spatial index for fast region queries
 CREATE INDEX idx_radar_grid_geom ON radar_grid_data USING GIST(geom);
 CREATE INDEX idx_radar_grid_region_time ON radar_grid_data (region_id, observation_time DESC);
 
 -- =========================================
--- 3. STORM CELLS (SCIT Tracking)
+-- 3. STORM CELL CENTROIDS (SCIT Nowcasts)
 -- =========================================
 CREATE TABLE storm_cells (
-  id TEXT PRIMARY KEY,  -- e.g. 'CELL-ALPHA-01'
+  id BIGSERIAL PRIMARY KEY,
+  cell_id TEXT NOT NULL,
   region_id TEXT REFERENCES monitoring_regions(id) ON DELETE CASCADE,
   name TEXT NOT NULL,
-  observation_time TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   lat DOUBLE PRECISION NOT NULL,
   lng DOUBLE PRECISION NOT NULL,
   geom GEOMETRY(Point, 4326),
-  -- Motion Vector
-  speed_kmh REAL,
-  heading_deg REAL,
-  -- Storm Characteristics
-  max_reflectivity_dbz REAL,
-  echo_top_height_km REAL,
-  hail_mesh_cm REAL,               -- Maximum Expected Size of Hail
-  downburst_speed_ms REAL,          -- Microburst wind gust potential
-  lightning_rate_per_min REAL,
-  cloudburst_risk TEXT CHECK (cloudburst_risk IN ('LOW', 'MODERATE', 'HIGH', 'EXTREME')),
-  -- Pre-Rain Convective Initiation (CI)
-  ci_thermal_drop_rate TEXT,        -- e.g. '-2.4°C / 5 min'
-  ci_detected_at TIMESTAMPTZ,
-  -- Lifecycle
-  status TEXT DEFAULT 'ACTIVE' CHECK (status IN ('INITIATING', 'ACTIVE', 'SEVERE', 'DISSIPATING')),
-  first_detected_at TIMESTAMPTZ DEFAULT NOW(),
-  last_updated_at TIMESTAMPTZ DEFAULT NOW()
-);
-
-CREATE INDEX idx_storm_cells_geom ON storm_cells USING GIST(geom);
-CREATE INDEX idx_storm_cells_region ON storm_cells (region_id, status);
-
--- =========================================
--- 4. STORM CELL TRAJECTORIES (0–6 Hr Path)
--- =========================================
-CREATE TABLE storm_cell_trajectories (
-  id BIGSERIAL PRIMARY KEY,
-  cell_id TEXT REFERENCES storm_cells(id) ON DELETE CASCADE,
-  lead_time_hours REAL NOT NULL,    -- 0 to 6
-  predicted_lat DOUBLE PRECISION NOT NULL,
-  predicted_lng DOUBLE PRECISION NOT NULL,
-  geom GEOMETRY(Point, 4326),
-  confidence_pct REAL,              -- Prediction confidence (%)
-  predicted_dbz REAL,
+  speed_kmh REAL NOT NULL,
+  heading_deg REAL NOT NULL,
+  max_dbz REAL NOT NULL,
+  top_height_km REAL,
+  hail_mesh_cm REAL,
+  downburst_ms REAL,
+  cloudburst_risk TEXT,
+  lightning_rate REAL,
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
-CREATE INDEX idx_trajectories_cell ON storm_cell_trajectories (cell_id, lead_time_hours);
+CREATE INDEX idx_storm_cells_geom ON storm_cells USING GIST(geom);
 
 -- =========================================
--- 5. HAZARD ALERTS (Sub-district Countdowns)
+-- 4. STORM CELL TRAJECTORY VECTORS
 -- =========================================
-CREATE TABLE hazard_alerts (
-  id TEXT PRIMARY KEY,
-  region_id TEXT REFERENCES monitoring_regions(id) ON DELETE CASCADE,
-  cell_id TEXT REFERENCES storm_cells(id) ON DELETE SET NULL,
-  subdistrict_name TEXT NOT NULL,
-  hazard_type TEXT NOT NULL,        -- 'Hailstorm', 'Cloudburst', 'Lightning', 'Downburst', 'Flash Flood'
-  severity TEXT NOT NULL CHECK (severity IN ('WATCH', 'WARNING', 'CRITICAL', 'EMERGENCY')),
-  eta_minutes INTEGER,              -- Estimated time of arrival
-  -- Sector-Specific Impact Scores
-  impact_agriculture TEXT CHECK (impact_agriculture IN ('LOW', 'MEDIUM', 'HIGH', 'EXTREME')),
-  impact_aviation TEXT CHECK (impact_aviation IN ('LOW', 'MEDIUM', 'HIGH', 'EXTREME')),
-  impact_urban_flood TEXT CHECK (impact_urban_flood IN ('LOW', 'MEDIUM', 'HIGH', 'EXTREME')),
-  impact_description TEXT,
-  -- Status
-  is_active BOOLEAN DEFAULT true,
-  issued_at TIMESTAMPTZ DEFAULT NOW(),
-  expires_at TIMESTAMPTZ,
-  acknowledged_at TIMESTAMPTZ
+CREATE TABLE storm_trajectories (
+  id BIGSERIAL PRIMARY KEY,
+  storm_cell_id BIGINT REFERENCES storm_cells(id) ON DELETE CASCADE,
+  lead_time_hours REAL NOT NULL,
+  forecast_lat DOUBLE PRECISION NOT NULL,
+  forecast_lng DOUBLE PRECISION NOT NULL,
+  forecast_geom GEOMETRY(Point, 4326),
+  max_dbz_forecast REAL,
+  created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
-CREATE INDEX idx_hazard_alerts_active ON hazard_alerts (region_id, is_active, severity);
+-- =========================================
+-- 5. SUB-DISTRICT HAZARD COUNTDOWNS
+-- =========================================
+CREATE TABLE hazard_alerts (
+  id BIGSERIAL PRIMARY KEY,
+  subdistrict_id TEXT NOT NULL,
+  subdistrict_name TEXT NOT NULL,
+  hazard_type TEXT NOT NULL,
+  eta_minutes INTEGER NOT NULL,
+  severity TEXT CHECK (severity IN ('WATCH', 'HIGH', 'CRITICAL', 'EMERGENCY')),
+  color TEXT DEFAULT '#ef4444',
+  impact_agri TEXT,
+  impact_aviation TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
 
 -- =========================================
--- 6. CAP ALERTS (Common Alerting Protocol)
+-- 6. CAP (Common Alerting Protocol v1.2) ALERTS
 -- =========================================
 CREATE TABLE cap_alerts (
   id BIGSERIAL PRIMARY KEY,
-  alert_id TEXT REFERENCES hazard_alerts(id) ON DELETE CASCADE,
-  cell_id TEXT REFERENCES storm_cells(id) ON DELETE SET NULL,
-  cap_identifier TEXT UNIQUE NOT NULL,
-  cap_xml TEXT NOT NULL,
-  cap_status TEXT DEFAULT 'Actual' CHECK (cap_status IN ('Actual', 'Exercise', 'System', 'Test')),
-  cap_severity TEXT DEFAULT 'Extreme' CHECK (cap_severity IN ('Minor', 'Moderate', 'Severe', 'Extreme')),
-  cap_urgency TEXT DEFAULT 'Immediate' CHECK (cap_urgency IN ('Past', 'Future', 'Expected', 'Immediate')),
-  sent_to_ndma BOOLEAN DEFAULT false,
-  sent_to_sdma BOOLEAN DEFAULT false,
+  alert_identifier TEXT NOT NULL UNIQUE,
+  sender TEXT NOT NULL DEFAULT 'alert-engine@ncmrwf.gov.in',
   sent_at TIMESTAMPTZ DEFAULT NOW(),
+  event_type TEXT NOT NULL,
+  urgency TEXT DEFAULT 'Immediate',
+  severity TEXT DEFAULT 'Extreme',
+  headline TEXT NOT NULL,
+  description TEXT,
+  instruction TEXT,
+  area_desc TEXT,
+  cap_xml TEXT NOT NULL,
   expires_at TIMESTAMPTZ
 );
 
@@ -159,8 +154,8 @@ CREATE TABLE barometer_readings (
   lat DOUBLE PRECISION NOT NULL,
   lng DOUBLE PRECISION NOT NULL,
   geom GEOMETRY(Point, 4326),
-  pressure_hpa REAL NOT NULL,       -- Barometric pressure in hPa
-  pressure_delta_hpa REAL,          -- Change over last 5 minutes
+  pressure_hpa REAL NOT NULL,
+  pressure_delta_hpa REAL,
   temperature_c REAL,
   humidity_pct REAL,
   source TEXT DEFAULT 'smartphone' CHECK (source IN ('smartphone', 'iot_station', 'manual')),
@@ -229,11 +224,22 @@ CREATE POLICY "Users manage own prefs" ON user_preferences FOR ALL USING (auth.u
 -- =========================================
 -- 11. REALTIME SUBSCRIPTIONS
 -- =========================================
--- Enable Supabase Realtime on key tables for live dashboard updates
-ALTER PUBLICATION supabase_realtime ADD TABLE storm_cells;
-ALTER PUBLICATION supabase_realtime ADD TABLE hazard_alerts;
-ALTER PUBLICATION supabase_realtime ADD TABLE barometer_readings;
-ALTER PUBLICATION supabase_realtime ADD TABLE sensor_telemetry;
+-- Safely add tables to publication
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_publication_tables WHERE pubname = 'supabase_realtime' AND tablename = 'storm_cells') THEN
+    ALTER PUBLICATION supabase_realtime ADD TABLE storm_cells;
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_publication_tables WHERE pubname = 'supabase_realtime' AND tablename = 'hazard_alerts') THEN
+    ALTER PUBLICATION supabase_realtime ADD TABLE hazard_alerts;
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_publication_tables WHERE pubname = 'supabase_realtime' AND tablename = 'barometer_readings') THEN
+    ALTER PUBLICATION supabase_realtime ADD TABLE barometer_readings;
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_publication_tables WHERE pubname = 'supabase_realtime' AND tablename = 'sensor_telemetry') THEN
+    ALTER PUBLICATION supabase_realtime ADD TABLE sensor_telemetry;
+  END IF;
+END $$;
 
 -- =========================================
 -- DONE! Your database is ready.
