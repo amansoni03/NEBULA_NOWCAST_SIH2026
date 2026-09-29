@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>NEBULA-NOWCAST — Project Master Document & SIH PPT Guide</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      color: #0f172a;
+      background: #f8fafc;
+      line-height: 1.6;
+      padding: 40px 20px;
+    }
+    .doc-container {
+      max-width: 960px;
+      margin: 0 auto;
+      background: #ffffff;
+      padding: 50px 60px;
+      border-radius: 12px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.06);
+      border: 1px solid #e2e8f0;
+    }
+    header {
+      border-bottom: 3px solid #0284c7;
+      padding-bottom: 24px;
+      margin-bottom: 32px;
+    }
+    .badge {
+      display: inline-block;
+      background: #e0f2fe;
+      color: #0284c7;
+      font-weight: 700;
+      font-size: 12px;
+      padding: 4px 12px;
+      border-radius: 20px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 12px;
+    }
+    h1 {
+      font-size: 32px;
+      font-weight: 800;
+      color: #0f172a;
+      margin-bottom: 8px;
+    }
+    .subtitle {
+      font-size: 16px;
+      color: #475569;
+      font-weight: 500;
+    }
+    .meta-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      background: #f1f5f9;
+      padding: 16px 20px;
+      border-radius: 8px;
+      margin-top: 20px;
+      font-size: 13px;
+    }
+    .meta-item strong { color: #0284c7; }
+    
+    h2 {
+      font-size: 20px;
+      font-weight: 700;
+      color: #0f172a;
+      margin-top: 36px;
+      margin-bottom: 16px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid #e2e8f0;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    h3 {
+      font-size: 16px;
+      font-weight: 600;
+      color: #1e293b;
+      margin-top: 20px;
+      margin-bottom: 10px;
+    }
+    p, li {
+      font-size: 14px;
+      color: #334155;
+      margin-bottom: 10px;
+    }
+    ul, ol {
+      padding-left: 24px;
+      margin-bottom: 16px;
+    }
+    li { margin-bottom: 6px; }
+
+    /* Tables */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 20px 0;
+      font-size: 13px;
+    }
+    th, td {
+      padding: 12px 16px;
+      text-align: left;
+      border: 1px solid #cbd5e1;
+    }
+    th {
+      background: #f8fafc;
+      font-weight: 700;
+      color: #0f172a;
+    }
+    tr:nth-child(even) { background: #f8fafc; }
+
+    /* SVG Diagram Styling */
+    .diagram-card {
+      background: #f8fafc;
+      border: 1px solid #cbd5e1;
+      border-radius: 12px;
+      padding: 24px;
+      margin: 24px 0;
+    }
+    .diagram-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: #0284c7;
+      margin-bottom: 16px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    /* Print Optimization */
+    @media print {
+      body { background: #ffffff; padding: 0; }
+      .doc-container { box-shadow: none; border: none; max-width: 100%; padding: 0; }
+      .diagram-card { break-inside: avoid; }
+      h2 { break-after: avoid; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="doc-container">
+    <!-- Header -->
+    <header>
+      <span class="badge">Smart India Hackathon 2026 — PS 26084</span>
+      <h1>NEBULA-NOWCAST: Master Project Document</h1>
+      <p class="subtitle">GPU-Accelerated 1–3 km Convective Scale Nowcasting Platform (0–6 Hr Lead Time)</p>
+      
+      <div class="meta-grid">
+        <div class="meta-item"><strong>Problem Statement ID:</strong> PS 26084</div>
+        <div class="meta-item"><strong>Nodal Ministry:</strong> MoES / NCMRWF</div>
+        <div class="meta-item"><strong>Project Name:</strong> NEBULA-NOWCAST</div>
+        <div class="meta-item"><strong>Target Resolution:</strong> 1–3 km Grid / 15-min Updates</div>
+      </div>
+    </header>
+
+    <!-- Section 1 -->
+    <h2>1. Executive Summary & Problem Need</h2>
+    <p>Standard Numerical Weather Prediction (NWP) models (e.g., WRF, GFS) operate on 6–12 hour run cycles with coarse spatial resolutions of 12–25 km. Consequently, rapidly evolving convective events—such as cloudbursts, severe hailstorms, microbursts, and squall lines—develop, peak, and decay before NWP model initialization completes.</p>
+    <p><strong>NEBULA-NOWCAST</strong> bridges this critical 0–6 hour forecasting gap by fusing Doppler Weather Radar (DWR S/C/X-band 1–3 km grids), INSAT-3D thermal IR satellite channels, and ground IoT barometers into a GPU-accelerated PyTorch ConvLSTM deep learning nowcasting engine.</p>
+
+    <!-- Section 2: Technology Architecture -->
+    <h2>2. System Technology Stack</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Layer</th>
+          <th>Technology</th>
+          <th>Function & Responsibility</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Frontend UI</strong></td>
+          <td>React 19 + Vite 8 + Tailwind CSS</td>
+          <td>60-fps reactive 3-panel dashboard with instant Light/Dark theme switching.</td>
+        </tr>
+        <tr>
+          <td><strong>GPU WebGL Map</strong></td>
+          <td>WeatherLayers-GL + Leaflet</td>
+          <td>GPU continuous radar dBZ reflectivity gradient & animated speed particle streams.</td>
+        </tr>
+        <tr>
+          <td><strong>Database & GIS</strong></td>
+          <td>Supabase PostgreSQL + PostGIS 3.4</td>
+          <td>Real-time spatial queries (<code>ST_DWithin</code>, <code>ST_MakePoint</code>) & WebSocket updates.</td>
+        </tr>
+        <tr>
+          <td><strong>AI Nowcasting Engine</strong></td>
+          <td>PyTorch ConvLSTM + Optical Flow</td>
+          <td>Spatial-temporal neural network for 0–6 hr reflectivity & centroid SCIT extrapolation.</td>
+        </tr>
+        <tr>
+          <td><strong>Data Standard</strong></td>
+          <td>W3C CAP v1.2 XML</td>
+          <td>Common Alerting Protocol for emergency SMS/Siren gateways.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- Section 3: Clean Visual System Flowchart Diagram -->
+    <h2>3. System Process Flowchart</h2>
+    <div class="diagram-card">
+      <div class="diagram-title">System Data Ingestion & Processing Pipeline</div>
+      
+      <svg viewBox="0 0 800 420" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+        <!-- Background grid styling -->
+        <defs>
+          <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" style="stop-color:#0284c7;stop-opacity:1" />
+            <stop offset="100%" style="stop-color:#0369a1;stop-opacity:1" />
+          </linearGradient>
+          <linearGradient id="grad2" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" style="stop-color:#6366f1;stop-opacity:1" />
+            <stop offset="100%" style="stop-color:#4f46e5;stop-opacity:1" />
+          </linearGradient>
+          <linearGradient id="grad3" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" style="stop-color:#ef4444;stop-opacity:1" />
+            <stop offset="100%" style="stop-color:#dc2626;stop-opacity:1" />
+          </linearGradient>
+          <linearGradient id="grad4" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" style="stop-color:#10b981;stop-opacity:1" />
+            <stop offset="100%" style="stop-color:#059669;stop-opacity:1" />
+          </linearGradient>
+        </defs>
+
+        <!-- Box 1: Ingestion -->
+        <rect x="20" y="20" width="760" height="60" rx="8" fill="url(#grad1)" />
+        <text x="400" y="55" fill="#ffffff" font-size="14" font-weight="700" text-anchor="middle">1. RAW DATA INGESTION: DWR Radar (S/C/X), INSAT-3D IR Satellite, Lightning & IoT Barometers</text>
+        
+        <!-- Arrow down -->
+        <line x1="400" y1="80" x2="400" y2="110" stroke="#0284c7" stroke-width="3" stroke-dasharray="4" />
+        <polygon points="400,118 394,108 406,108" fill="#0284c7" />
+
+        <!-- Box 2: Supabase PostGIS -->
+        <rect x="20" y="120" width="760" height="60" rx="8" fill="url(#grad2)" />
+        <text x="400" y="155" fill="#ffffff" font-size="14" font-weight="700" text-anchor="middle">2. SPATIAL GEOSPATIAL STORAGE: Supabase PostGIS Database (ST_DWithin, Spatial Indexing)</text>
+
+        <!-- Arrow down -->
+        <line x1="400" y1="180" x2="400" y2="210" stroke="#6366f1" stroke-width="3" stroke-dasharray="4" />
+        <polygon points="400,218 394,208 406,208" fill="#6366f1" />
+
+        <!-- Box 3: ConvLSTM AI -->
+        <rect x="20" y="220" width="760" height="60" rx="8" fill="url(#grad3)" />
+        <text x="400" y="255" fill="#ffffff" font-size="14" font-weight="700" text-anchor="middle">3. AI NOWCAST ENGINE: PyTorch ConvLSTM Tensor Model & Optical Flow (0–6 Hr Extrapolation)</text>
+
+        <!-- Arrow down -->
+        <line x1="400" y1="280" x2="400" y2="310" stroke="#ef4444" stroke-width="3" stroke-dasharray="4" />
+        <polygon points="400,318 394,308 406,308" fill="#ef4444" />
+
+        <!-- Box 4: Output & Alerts -->
+        <rect x="20" y="320" width="760" height="70" rx="8" fill="url(#grad4)" />
+        <text x="400" y="350" fill="#ffffff" font-size="14" font-weight="700" text-anchor="middle">4. GPU WEBGL RENDERS & MULTI-AGENCY ALERTS</text>
+        <text x="400" y="372" fill="#e0e7ff" font-size="12" text-anchor="middle">Sub-District Countdown Clocks | W3C CAP v1.2 XML | Ground IoT Barometer Validation</text>
+      </svg>
+    </div>
+
+    <!-- Section 4: Key Innovations -->
+    <h2>4. Key Innovations & Uniqueness</h2>
+    <ul>
+      <li><strong>Ground IoT Mesh Barometer Telemetry:</strong> Fuses crowdsourced mobile pressure drop telemetry (-3.2 hPa / 5 min) to validate aloft radar microburst predictions at ground level.</li>
+      <li><strong>PostGIS Geofenced Real-Time WebSockets:</strong> Automatically pushes alert notifications to disaster authorities when storm cell reflectivity (<code>dBZ > 55</code>) crosses a 5 km district boundary.</li>
+      <li><strong>Dual Sector Impact Matrix:</strong> Provides terminal doppler wind shear risk for pilots alongside crop-specific hail size (MESH cm) warnings for local farmers.</li>
+      <li><strong>Vertical Radar Sounding Profile (VAD / RHI 0–16 km):</strong> Displays real-time CAPE, CIN, and freezing level melting layers.</li>
+    </ul>
+
+    <!-- Section 5: Future Scopes -->
+    <h2>5. Future Scope & Scaling Roadmap</h2>
+    <ol>
+      <li><strong>Edge AI Radar Deployment:</strong> Quantize ConvLSTM model weights for zero-latency deployment on NVIDIA Jetson / Raspberry Pi 5 edge devices directly at DWR radar stations.</li>
+      <li><strong>ISRO INSAT-3DS Rapid Scan Integration:</strong> Ingest 5-minute rapid scan satellite imagery to detect convective initiation before radar echo formation.</li>
+      <li><strong>Panchayat Siren & Mobile Push Integration:</strong> Direct integration with Apple APNs / FCM and village siren towers for 3-second cloudburst alert delivery.</li>
+    </ol>
+
+    <!-- Section 6: Slide-by-Slide Content -->
+    <h2>6. Slide-by-Slide PPT Presentation Content Guide</h2>
+    
+    <h3>Slide 1: Title Slide (16:9 Widescreen Light Theme)</h3>
+    <ul>
+      <li><strong>Title:</strong> NEBULA-NOWCAST</li>
+      <li><strong>Subtitle:</strong> 0–6 Hour Convective Scale Nowcasting Platform (PS 26084)</li>
+      <li><strong>Nodal Ministry:</strong> Ministry of Earth Sciences (MoES) / NCMRWF</li>
+    </ul>
+
+    <h3>Slide 2: Problem Need & 0–6 Hr Warning Gap</h3>
+    <ul>
+      <li>Standard NWP models take 6+ hours to initialize, failing to detect short-lived cloudbursts and hailstorms.</li>
+      <li>Coarse 12 km grids cannot resolve small 1–3 km convective initiation cells.</li>
+    </ul>
+
+    <h3>Slide 3: Proposed Solution — NEBULA-NOWCAST</h3>
+    <ul>
+      <li>Fuses DWR Radar (1–3 km grid), INSAT-3D Satellite IR, and lightning telemetry.</li>
+      <li>PyTorch ConvLSTM neural network predicts cell centroid movement up to +6 hrs.</li>
+      <li>GPU WebGL WeatherLayers-GL continuous radar reflectivity gradients.</li>
+    </ul>
+
+    <h3>Slide 4: Technical Architecture & Tech Stack</h3>
+    <ul>
+      <li>React 19, Vite 8, Tailwind CSS, Lucide Icons.</li>
+      <li>WeatherLayers-GL + Leaflet Canvas WebGL rendering.</li>
+      <li>Supabase PostgreSQL + PostGIS spatial extension.</li>
+      <li>W3C CAP v1.2 XML emergency alerting format.</li>
+    </ul>
+
+    <h3>Slide 5: Methodology & Implementation Process Flowchart</h3>
+    <ul>
+      <li>Multi-sensor raw ingestion -> PostGIS spatial indexing -> ConvLSTM AI extrapolation -> Sub-district warning countdowns & CAP alerts.</li>
+    </ul>
+
+    <h3>Slide 6: Key Innovations</h3>
+    <ul>
+      <li>Ground IoT Mesh Barometer Telemetry.</li>
+      <li>PostGIS Spatial Geofenced WebSockets.</li>
+      <li>Dual Aviation & Agricultural Impact Matrix.</li>
+    </ul>
+
+    <h3>Slide 7: Future Scope & Conclusion</h3>
+    <ul>
+      <li>Edge AI deployment at DWR sites.</li>
+      <li>ISRO 5-minute rapid scan integration.</li>
+      <li>Instant village siren tower & mobile push broadcasts.</li>
+    </ul>
+  </div>
+
+</body>
+</html>

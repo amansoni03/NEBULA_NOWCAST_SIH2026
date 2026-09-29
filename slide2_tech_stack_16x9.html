@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>NEBULA-NOWCAST — Slide 2 Tech Stack & Flowchart (16:9)</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+    body {
+      background: #f1f5f9;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 20px;
+    }
+    .slide-container {
+      width: 1280px;
+      height: 720px;
+      background: #ffffff;
+      border-radius: 16px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.08);
+      padding: 40px 48px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      position: relative;
+      overflow: hidden;
+      border: 1px solid #e2e8f0;
+    }
+    .slide-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      border-bottom: 2px solid #f1f5f9;
+      padding-bottom: 16px;
+    }
+    .badge {
+      background: #e0f2fe;
+      color: #0284c7;
+      font-weight: 700;
+      font-size: 12px;
+      padding: 4px 12px;
+      border-radius: 20px;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+    .slide-title {
+      font-size: 26px;
+      font-weight: 800;
+      color: #0f172a;
+      margin-top: 4px;
+    }
+    .slide-subtitle {
+      font-size: 13px;
+      color: #64748b;
+      margin-top: 2px;
+    }
+    .slide-body {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 32px;
+      margin-top: 24px;
+      flex: 1;
+    }
+    .panel-card {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .panel-header {
+      font-size: 16px;
+      font-weight: 700;
+      color: #1e293b;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .tech-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    .tech-item {
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      padding: 12px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+    }
+    .tech-icon {
+      width: 36 h-36;
+      height: 36px;
+      width: 36px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      font-weight: bold;
+      color: #ffffff;
+      shrink: 0;
+    }
+    .tech-info {
+      display: flex;
+      flex-direction: column;
+    }
+    .tech-name {
+      font-size: 13px;
+      font-weight: 700;
+      color: #0f172a;
+    }
+    .tech-desc {
+      font-size: 11px;
+      color: #64748b;
+    }
+
+    /* Flowchart styles */
+    .flow-step {
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+      border-left: 4px solid #3b82f6;
+      border-radius: 8px;
+      padding: 10px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 12px;
+      font-weight: 600;
+      color: #1e293b;
+    }
+    .flow-arrow {
+      text-align: center;
+      color: #94a3b8;
+      font-size: 14px;
+      font-weight: bold;
+    }
+
+    .slide-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 11px;
+      color: #94a3b8;
+      border-top: 1px solid #f1f5f9;
+      padding-top: 12px;
+      margin-top: 16px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="slide-container">
+    <!-- Header -->
+    <div class="slide-header">
+      <div>
+        <span class="badge">SIH 2026 — Slide 2</span>
+        <h1 class="slide-title">Technical Stack & Implementation Methodology</h1>
+        <p class="slide-subtitle">NEBULA-NOWCAST: GPU-Accelerated 1–3 km Convective Scale Nowcasting Platform (PS 26084)</p>
+      </div>
+      <div style="font-weight: 700; color: #0284c7; font-size: 13px;">
+        MoES / NCMRWF
+      </div>
+    </div>
+
+    <!-- Body -->
+    <div class="slide-body">
+      <!-- Panel 1: Tech Stack & Logos -->
+      <div class="panel-card">
+        <div class="panel-header">
+          <span style="color: #0284c7;">🛠️</span> Technologies & Frameworks Used
+        </div>
+
+        <div class="tech-grid">
+          <div class="tech-item">
+            <div class="tech-icon" style="background: linear-gradient(135deg, #06b6d4, #3b82f6);">⚛️</div>
+            <div class="tech-info">
+              <span class="tech-name">React 19 + Vite 8</span>
+              <span class="tech-desc">60fps Reactive UI</span>
+            </div>
+          </div>
+
+          <div class="tech-item">
+            <div class="tech-icon" style="background: linear-gradient(135deg, #10b981, #059669);">🌐</div>
+            <div class="tech-info">
+              <span class="tech-name">WeatherLayers-GL</span>
+              <span class="tech-desc">GPU WebGL Vector Map</span>
+            </div>
+          </div>
+
+          <div class="tech-item">
+            <div class="tech-icon" style="background: linear-gradient(135deg, #6366f1, #4f46e5);">⚡</div>
+            <div class="tech-info">
+              <span class="tech-name">Supabase + PostGIS</span>
+              <span class="tech-desc">Realtime Spatial DB</span>
+            </div>
+          </div>
+
+          <div class="tech-item">
+            <div class="tech-icon" style="background: linear-gradient(135deg, #ef4444, #f59e0b);">🔥</div>
+            <div class="tech-info">
+              <span class="tech-name">PyTorch ConvLSTM</span>
+              <span class="tech-desc">AI Nowcast Engine</span>
+            </div>
+          </div>
+
+          <div class="tech-item">
+            <div class="tech-icon" style="background: linear-gradient(135deg, #0ea5e9, #0284c7);">🎨</div>
+            <div class="tech-info">
+              <span class="tech-name">Tailwind CSS</span>
+              <span class="tech-desc">Light/Dark Design Token</span>
+            </div>
+          </div>
+
+          <div class="tech-item">
+            <div class="tech-icon" style="background: linear-gradient(135deg, #8b5cf6, #7c3aed);">📡</div>
+            <div class="tech-info">
+              <span class="tech-name">W3C CAP v1.2 XML</span>
+              <span class="tech-desc">Emergency Alert Schema</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Panel 2: Process Flowchart -->
+      <div class="panel-card">
+        <div class="panel-header">
+          <span style="color: #10b981;">🔄</span> Process Implementation Flowchart
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 8px;">
+          <div class="flow-step" style="border-left-color: #0284c7;">
+            <span>1. Raw Multi-Sensor Ingestion (DWR S/C/X Radar, INSAT-3D IR, Lightning)</span>
+            <span style="color: #0284c7;">📡</span>
+          </div>
+          <div class="flow-arrow">↓</div>
+
+          <div class="flow-step" style="border-left-color: #6366f1;">
+            <span>2. Real-Time Spatial Indexing & WebSockets (Supabase PostGIS)</span>
+            <span style="color: #6366f1;">⚡</span>
+          </div>
+          <div class="flow-arrow">↓</div>
+
+          <div class="flow-step" style="border-left-color: #ef4444;">
+            <span>3. ConvLSTM Spatial-Temporal AI Prediction (0–6 Hr Extrapolation)</span>
+            <span style="color: #ef4444;">🧠</span>
+          </div>
+          <div class="flow-arrow">↓</div>
+
+          <div class="flow-step" style="border-left-color: #10b981;">
+            <span>4. GPU WebGL Canvas Render + Sub-District Countdown & CAP Alerts</span>
+            <span style="color: #10b981;">🚨</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="slide-footer">
+      <span>Smart India Hackathon 2026 | Problem Statement 26084</span>
+      <span>System Name: NEBULA-NOWCAST</span>
+      <span>Slide 2 of 5</span>
+    </div>
+  </div>
+
+</body>
+</html>
