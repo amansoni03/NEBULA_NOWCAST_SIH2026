@@ -214,17 +214,14 @@ ALTER TABLE barometer_readings ENABLE ROW LEVEL SECURITY;
 ALTER TABLE user_preferences ENABLE ROW LEVEL SECURITY;
 ALTER TABLE sensor_telemetry ENABLE ROW LEVEL SECURITY;
 
--- Public read access for monitoring data
-CREATE POLICY "Public read monitoring_regions" ON monitoring_regions FOR SELECT USING (true);
-CREATE POLICY "Public read radar_grid_data" ON radar_grid_data FOR SELECT USING (true);
-CREATE POLICY "Public read storm_cells" ON storm_cells FOR SELECT USING (true);
-CREATE POLICY "Public read hazard_alerts" ON hazard_alerts FOR SELECT USING (true);
-CREATE POLICY "Public read cap_alerts" ON cap_alerts FOR SELECT USING (true);
-CREATE POLICY "Public read sensor_telemetry" ON sensor_telemetry FOR SELECT USING (true);
-
--- Authenticated users can submit barometer readings
-CREATE POLICY "Auth insert barometer" ON barometer_readings FOR INSERT WITH CHECK (auth.uid() = user_id);
-CREATE POLICY "Public read barometer" ON barometer_readings FOR SELECT USING (true);
+-- Public access policies (SELECT, INSERT, UPDATE) for monitoring & simulation data
+CREATE POLICY "Public full access monitoring_regions" ON monitoring_regions FOR ALL USING (true) WITH CHECK (true);
+CREATE POLICY "Public full access radar_grid_data" ON radar_grid_data FOR ALL USING (true) WITH CHECK (true);
+CREATE POLICY "Public full access storm_cells" ON storm_cells FOR ALL USING (true) WITH CHECK (true);
+CREATE POLICY "Public full access hazard_alerts" ON hazard_alerts FOR ALL USING (true) WITH CHECK (true);
+CREATE POLICY "Public full access cap_alerts" ON cap_alerts FOR ALL USING (true) WITH CHECK (true);
+CREATE POLICY "Public full access sensor_telemetry" ON sensor_telemetry FOR ALL USING (true) WITH CHECK (true);
+CREATE POLICY "Public full access barometer" ON barometer_readings FOR ALL USING (true) WITH CHECK (true);
 
 -- Users manage their own preferences
 CREATE POLICY "Users manage own prefs" ON user_preferences FOR ALL USING (auth.uid() = user_id);
